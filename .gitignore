@@ -1,0 +1,33 @@
+# Visual Studio 2015-2022
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+
+# Packages
+packages/
+*.nupkg
+.nuget/
+
+# Rider
+.idea/
+
+# ReSharper
+_ReSharper.*/
+*.resharper
+*.userprefs
+
+# Test results
+TestResults/
+
+# Other
+*.log
+*.pdb
+*.scc
+*.vssscc

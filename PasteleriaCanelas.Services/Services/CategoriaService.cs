@@ -1,0 +1,118 @@
+﻿using PasteleriaCanelas.Data.Context;
+using PasteleriaCanelas.Domain.Entities;
+using PasteleriaCanelas.Services.DTOs;
+using PasteleriaCanelas.Services.Interfaces;
+using PasteleriaCanelas.Services.Utilities;
+using Microsoft.EntityFrameworkCore;
+
+namespace PasteleriaCanelas.Services;
+
+public class CategoriaService : ICategoriaService
+{
+    //se declara variable para el contexto de la base de datos
+    private readonly PasteleriaDbContext _context;
+
+    // Constructor, este es el punto para la inyección de dependencias
+    // se inyecta una instancia del contexto cuando se crea ProductoService
+    public CategoriaService(PasteleriaDbContext context)
+    {
+        _context = context;
+    }
+
+public async Task<CategoriaDto?> CrearCategoria(CategoriaCreacionDto categoriaDto)
+{
+    var nuevaCategoria = new Categoria
+    {
+        Nombre = categoriaDto.Nombre,
+        Descripcion = categoriaDto.Descripcion,
+        Slug = SlugGenerator.GenerateSlug(categoriaDto.Nombre!)
+    };
+
+    _context.Categorias.Add(nuevaCategoria);
+    await _context.SaveChangesAsync();
+
+    return new CategoriaDto
+    {
+        CategoriaId = nuevaCategoria.CategoriaId,
+        Nombre = nuevaCategoria.Nombre,
+        Slug = nuevaCategoria.Slug,
+        Descripcion = nuevaCategoria.Descripcion,
+        Activo = nuevaCategoria.Activo
+    };
+}
+
+    public async Task<IEnumerable<CategoriaDto>> ObtenerCategorias()
+    {
+        var categorias = await _context.Categorias.ToListAsync();
+
+        return categorias.Select(c => new CategoriaDto
+        {
+            CategoriaId = c.CategoriaId,
+            Nombre = c.Nombre,
+            Slug = c.Slug, // Mapeo de la nueva propiedad
+            Descripcion = c.Descripcion, // Mapeo de la nueva propiedad
+            Activo = c.Activo // Mapeo de la nueva propiedad
+        }).ToList();
+    }
+
+    public async Task<CategoriaDto?> ObtenerCategoriaPorId(int categoriaId)
+    {
+        var categoria = await _context.Categorias.FindAsync(categoriaId);
+        if (categoria == null)
+        {
+            return null;
+        }
+
+        return new CategoriaDto
+        {
+            CategoriaId = categoria.CategoriaId,
+            Nombre = categoria.Nombre,
+            Slug = categoria.Slug, // Mapeo de la nueva propiedad
+            Descripcion = categoria.Descripcion, // Mapeo de la nueva propiedad
+            Activo = categoria.Activo // Mapeo de la nueva propiedad
+        };
+    }
+
+    public async Task<bool> ActualizarCategoria(CategoriaActualizacionDto categoriaDto)
+    {
+        var categoria = await _context.Categorias.FindAsync(categoriaDto.CategoriaId);
+        if (categoria == null)
+        {
+            return false;
+        }
+
+        categoria.Nombre = categoriaDto.Nombre;
+        categoria.Descripcion = categoriaDto.Descripcion;
+        categoria.Activo = categoriaDto.Activo;
+        categoria.Slug = SlugGenerator.GenerateSlug(categoriaDto.Nombre!);
+
+        _context.Categorias.Update(categoria);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> EliminarCategoria(int categoriaId)
+    {
+        var categoria = await _context.Categorias.FindAsync(categoriaId);
+        if (categoria == null)
+        {
+            return false;
+        }
+
+        // Verificamos si hay algún producto asociado a esta categoría.
+        var tieneProductos = await _context.Productos.AnyAsync(p => p.CategoriaId == categoriaId);
+
+        // Si la categoría tiene productos, devolvemos false.
+        if (tieneProductos)
+        {
+            return false;
+        }
+
+        // Si no tiene productos, procedemos a eliminarla de forma segura.
+        _context.Categorias.Remove(categoria);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+
+}
