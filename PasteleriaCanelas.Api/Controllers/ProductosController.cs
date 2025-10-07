@@ -42,7 +42,7 @@ public class ProductosController : ControllerBase
         // si no hay producto entonces retorna null
         if (producto == null)
         {
-            return NotFound("No papu no se encontró lo que busca");
+            return NotFound($"El producto con ID {id} no fue encontrado.");
         }
         // si hay se retorna la respuesta
         return Ok(producto);
@@ -111,4 +111,3 @@ public class ProductosController : ControllerBase
     }
 
 }
-

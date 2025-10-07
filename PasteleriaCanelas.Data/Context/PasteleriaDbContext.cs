@@ -32,6 +32,8 @@ public partial class PasteleriaDbContext : DbContext
             entity.Property(e => e.Nombre).HasMaxLength(100);
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.Descripcion).HasMaxLength(500);
+            entity.Property(e => e.ImagenUrl).HasMaxLength(500);
+            entity.Property(e => e.Icono).HasMaxLength(100);
             entity.Property(e => e.Slug).HasMaxLength(150).IsRequired();
         });
 

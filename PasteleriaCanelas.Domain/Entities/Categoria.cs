@@ -9,8 +9,12 @@ public class Categoria
 
     public bool Activo { get; set; }
     public string? Descripcion { get; set; }
+    public string? ImagenUrl { get; set; }
+    public string? Icono { get; set; }
     public string Slug { get; set; } = null!;
 
     public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
 
 }
+
+

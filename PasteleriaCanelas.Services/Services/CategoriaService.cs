@@ -1,4 +1,4 @@
-﻿using PasteleriaCanelas.Data.Context;
+﻿﻿using PasteleriaCanelas.Data.Context;
 using PasteleriaCanelas.Domain.Entities;
 using PasteleriaCanelas.Services.DTOs;
 using PasteleriaCanelas.Services.Interfaces;
@@ -25,6 +25,8 @@ public async Task<CategoriaDto?> CrearCategoria(CategoriaCreacionDto categoriaDt
     {
         Nombre = categoriaDto.Nombre,
         Descripcion = categoriaDto.Descripcion,
+        ImagenUrl = categoriaDto.ImagenUrl,
+        Icono = categoriaDto.Icono,
         Slug = SlugGenerator.GenerateSlug(categoriaDto.Nombre!)
     };
 
@@ -36,7 +38,9 @@ public async Task<CategoriaDto?> CrearCategoria(CategoriaCreacionDto categoriaDt
         CategoriaId = nuevaCategoria.CategoriaId,
         Nombre = nuevaCategoria.Nombre,
         Slug = nuevaCategoria.Slug,
+        ImagenUrl = nuevaCategoria.ImagenUrl,
         Descripcion = nuevaCategoria.Descripcion,
+        Icono = nuevaCategoria.Icono,
         Activo = nuevaCategoria.Activo
     };
 }
@@ -51,6 +55,8 @@ public async Task<CategoriaDto?> CrearCategoria(CategoriaCreacionDto categoriaDt
             Nombre = c.Nombre,
             Slug = c.Slug, // Mapeo de la nueva propiedad
             Descripcion = c.Descripcion, // Mapeo de la nueva propiedad
+            ImagenUrl = c.ImagenUrl,
+            Icono = c.Icono,
             Activo = c.Activo // Mapeo de la nueva propiedad
         }).ToList();
     }
@@ -69,6 +75,8 @@ public async Task<CategoriaDto?> CrearCategoria(CategoriaCreacionDto categoriaDt
             Nombre = categoria.Nombre,
             Slug = categoria.Slug, // Mapeo de la nueva propiedad
             Descripcion = categoria.Descripcion, // Mapeo de la nueva propiedad
+            ImagenUrl = categoria.ImagenUrl,
+            Icono = categoria.Icono,
             Activo = categoria.Activo // Mapeo de la nueva propiedad
         };
     }
@@ -83,6 +91,8 @@ public async Task<CategoriaDto?> CrearCategoria(CategoriaCreacionDto categoriaDt
 
         categoria.Nombre = categoriaDto.Nombre;
         categoria.Descripcion = categoriaDto.Descripcion;
+        categoria.ImagenUrl = categoriaDto.ImagenUrl;
+        categoria.Icono = categoriaDto.Icono;
         categoria.Activo = categoriaDto.Activo;
         categoria.Slug = SlugGenerator.GenerateSlug(categoriaDto.Nombre!);
 
