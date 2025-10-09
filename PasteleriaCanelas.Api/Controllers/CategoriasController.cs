@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PasteleriaCanelas.Services.DTOs;
+using PasteleriaCanelas.Api.Helpers;
 using PasteleriaCanelas.Services.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ public class CategoriasController : ControllerBase
         var categoria = await _categoriaService.ObtenerCategoriaPorId(id);
         if (categoria == null)
         {
-            return NotFound("La categoría no fue encontrada.");
+            return NotFound(ApiMensajes.CategoriaNoEncontrada);
         }
         return Ok(categoria);
     }
@@ -50,7 +51,7 @@ public class CategoriasController : ControllerBase
 
         if (nuevaCategoria == null)
         {
-            return BadRequest("No se pudo crear la categoría");
+            return BadRequest(ApiMensajes.CreacionCategoriaFallida);
         }
 
         return CreatedAtAction(nameof(GetCategoriaId), new { id = nuevaCategoria.CategoriaId }, nuevaCategoria);
@@ -64,14 +65,14 @@ public async Task<IActionResult> ActualizarCategoria(int id, [FromBody] Categori
     // Verifica que el ID en la URL coincida con el ID en el cuerpo de la solicitud
     if (id != categoriaDto.CategoriaId)
     {
-        return BadRequest("El ID en la URL no coincide con el ID del cuerpo de la solicitud.");
+        return BadRequest(ApiMensajes.IdInvalido);
     }
 
     var resultado = await _categoriaService.ActualizarCategoria(categoriaDto);
 
     if (!resultado)
     {
-        return NotFound();
+        return NotFound(ApiMensajes.CategoriaNoEncontrada);
     }
 
     return NoContent();
@@ -85,7 +86,7 @@ public async Task<IActionResult> ActualizarCategoria(int id, [FromBody] Categori
         var exito = await _categoriaService.EliminarCategoria(id);
         if (!exito)
         {
-            return NotFound();
+            return NotFound(ApiMensajes.CategoriaNoEncontrada);
         }
         return NoContent();
     }

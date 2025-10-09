@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PasteleriaCanelas.Api.Helpers;
 using PasteleriaCanelas.Services.Interfaces;
 using PasteleriaCanelas.Services.DTOs;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ public class CatalogoController : ControllerBase
         // Si el servicio devuelve null, es porque la categoría no existe.
         if (productos == null)
         {
-            return NotFound("La categoría no fue encontrada.");
+            return NotFound(ApiMensajes.CategoriaNoEncontrada);
         }
         return Ok(productos);
     }
@@ -61,7 +62,7 @@ public class CatalogoController : ControllerBase
         // si no hay producto entonces retorna null
         if (producto == null)
         {
-            return NotFound("No papu no se encontró lo que busca");
+            return NotFound(ApiMensajes.RecursoNoEncontrado);
         }
         // si hay se retorna la respuesta
         return Ok(producto);
@@ -79,4 +80,3 @@ public class CatalogoController : ControllerBase
     }
 
 }
-

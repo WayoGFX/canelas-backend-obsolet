@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PasteleriaCanelas.Services.Interfaces;
 using PasteleriaCanelas.Services.DTOs;
 using System.Collections.Generic;
+using PasteleriaCanelas.Api.Helpers;
 using System.Threading.Tasks;
 using PasteleriaCanelas.Services.Services;
 
@@ -30,7 +31,7 @@ public class PreciosController : ControllerBase
         var nuevoPrecio = await _productoService.CrearPrecio(precioDto);
         if (nuevoPrecio == null)
         {
-            return NotFound("El producto al que intenta agregar el precio no fue encontrado.");
+            return NotFound(ApiMensajes.ProductoParaPrecioNoEncontrado);
         }
         return CreatedAtAction(null, null, nuevoPrecio);
     }
@@ -42,13 +43,13 @@ public class PreciosController : ControllerBase
     {
         if (id != precioDto.ProductoPrecioId)
         {
-            return BadRequest("El ID en la URL no coincide con el ID en el cuerpo de la petición.");
+            return BadRequest(ApiMensajes.IdInvalido);
         }
 
         var exito = await _productoService.ActualizarPrecio(precioDto);
         if (!exito)
         {
-            return NotFound("El precio no fue encontrado.");
+            return NotFound(ApiMensajes.PrecioNoEncontrado);
         }
         return NoContent();
     }
@@ -61,7 +62,7 @@ public class PreciosController : ControllerBase
         var exito = await _productoService.EliminarPrecio(id);
         if (!exito)
         {
-            return NotFound("El precio no fue encontrado.");
+            return NotFound(ApiMensajes.PrecioNoEncontrado);
         }
         return NoContent();
     }

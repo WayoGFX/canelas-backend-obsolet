@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PasteleriaCanelas.Services.Interfaces;
+using PasteleriaCanelas.Api.Helpers;
 using PasteleriaCanelas.Services.DTOs;
 using System.Threading.Tasks;
 
@@ -42,7 +43,7 @@ public class ProductosController : ControllerBase
         // si no hay producto entonces retorna null
         if (producto == null)
         {
-            return NotFound($"El producto con ID {id} no fue encontrado.");
+            return NotFound(ApiMensajes.ProductoNoEncontrado);
         }
         // si hay se retorna la respuesta
         return Ok(producto);
@@ -61,7 +62,7 @@ public class ProductosController : ControllerBase
         if (productoCreado == null)
         {
             // si no entonces devuelve error 400 de badquest
-            return BadRequest("La categoría especificada no existe");
+            return BadRequest(ApiMensajes.CategoriaParaProductoNoExiste);
         }
         // en caso de si crearse se retorna un 201 de creado con la info del producto
         return CreatedAtAction(nameof(GetProducto), new { id = productoCreado.ProductoId }, productoCreado);
@@ -76,7 +77,7 @@ public class ProductosController : ControllerBase
         //Validar que el id coincida con el Id de la información
         if (id != productoDto.ProductoId)
         {
-            return BadRequest("El ID en la URL no coincide con el ID del cuerpo");
+            return BadRequest(ApiMensajes.IdInvalido);
         }
 
         // verificar que si se encontró el producto
@@ -85,7 +86,7 @@ public class ProductosController : ControllerBase
         // si retorna falso es porque no se encontró producto
         if (!resultado)
         {
-            return NotFound("El producto no fue encontrado");
+            return NotFound(ApiMensajes.ProductoNoEncontrado);
         }
 
         // retornar respuesta de todo correcto si la actualización resultó
@@ -103,7 +104,7 @@ public class ProductosController : ControllerBase
         // se verifica que todo salió bien
         if (!resultado)
         {
-            return NotFound("El producto no fue encontrado.");
+            return NotFound(ApiMensajes.ProductoNoEncontrado);
         }
 
         // no se retorna nada
