@@ -27,7 +27,8 @@ public async Task<CategoriaDto?> CrearCategoria(CategoriaCreacionDto categoriaDt
         Descripcion = categoriaDto.Descripcion,
         ImagenUrl = categoriaDto.ImagenUrl,
         Icono = categoriaDto.Icono,
-        Slug = SlugGenerator.GenerateSlug(categoriaDto.Nombre!)
+        Slug = SlugGenerator.GenerateSlug(categoriaDto.Nombre!),
+        Activo = true
     };
 
     _context.Categorias.Add(nuevaCategoria);

@@ -49,10 +49,10 @@ builder.Services.AddControllers()
         {
             // Extraemos los errores de validación del ModelState.
             var errors = context.ModelState
-                .Where(e => e.Value.Errors.Count > 0)
+                .Where(e => e.Value?.Errors.Count > 0)
                 .ToDictionary(
                     kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToArray()
                 );
 
             // Objeto de respuesta de error.
