@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PasteleriaCanelas.Data.Context;
 using PasteleriaCanelas.Services;
+using Microsoft.AspNetCore.Mvc; // Necesario para ApiBehaviorOptions | osea manejo de errores
 using PasteleriaCanelas.Services.Interfaces;
 using PasteleriaCanelas.Services.Services;
 
@@ -21,8 +22,7 @@ builder.Services.AddCors(options =>
                       });
 });
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -41,6 +41,26 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 
 // añadir los servicios al controlador.
 builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Esta función se ejecuta cuando el model state no es válido.
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            // Extraemos los errores de validación del ModelState.
+            var errors = context.ModelState
+                .Where(e => e.Value.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            // Objeto de respuesta de error.
+            var problemDetails = new ValidationProblemDetails(context.ModelState);
+            
+            return new BadRequestObjectResult(problemDetails);
+        };
+    });
 
 var app = builder.Build();
 
