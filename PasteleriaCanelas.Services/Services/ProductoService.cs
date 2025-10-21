@@ -53,7 +53,12 @@ public class ProductoService : IProductoService
             Categoria = new CategoriaDto
             {
                 CategoriaId = producto.Categoria.CategoriaId,
-                Nombre = producto.Categoria.Nombre
+                Nombre = producto.Categoria.Nombre,
+                Slug = producto.Categoria.Slug,
+                Descripcion = producto.Categoria.Descripcion,
+                Icono = producto.Categoria.Icono,
+                ImagenUrl = producto.Categoria.ImagenUrl,
+                Activo = producto.Categoria.Activo
             },
             ProductoPrecios = producto.ProductoPrecios?.Select(pp => new ProductoPrecioDto
             {
@@ -82,6 +87,7 @@ public class ProductoService : IProductoService
         {
             ProductoId = p.ProductoId,
             Nombre = p.Nombre,
+            Slug = p.Slug,
             ImagenUrl = p.ImagenUrl,
             ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
             {
@@ -137,7 +143,12 @@ public class ProductoService : IProductoService
             Categoria = new CategoriaDto
             {
                 CategoriaId = categoria.CategoriaId,
-                Nombre = categoria.Nombre
+                Nombre = categoria.Nombre,
+                Slug = categoria.Slug,
+                Descripcion = categoria.Descripcion,
+                Icono = categoria.Icono,
+                ImagenUrl = categoria.ImagenUrl,
+                Activo = categoria.Activo
             },
             // Al momento de la creación, no hay precios
             ProductoPrecios = new List<ProductoPrecioDto>()
@@ -293,6 +304,7 @@ public class ProductoService : IProductoService
         {
             ProductoId = p.ProductoId,
             Nombre = p.Nombre,
+            Slug = p.Slug,
             ImagenUrl = p.ImagenUrl,
             ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
             {
@@ -334,6 +346,7 @@ public class ProductoService : IProductoService
         {
             ProductoId = p.ProductoId,
             Nombre = p.Nombre,
+            Slug = p.Slug,
             ImagenUrl = p.ImagenUrl,
             ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
             {
@@ -374,7 +387,12 @@ public class ProductoService : IProductoService
             Categoria = new CategoriaDto
             {
                 CategoriaId = producto.Categoria.CategoriaId,
-                Nombre = producto.Categoria.Nombre
+                Nombre = producto.Categoria.Nombre,
+                Slug = producto.Categoria.Slug,
+                Descripcion = producto.Categoria.Descripcion,
+                Icono = producto.Categoria.Icono,
+                ImagenUrl = producto.Categoria.ImagenUrl,
+                Activo = producto.Categoria.Activo
             },
             ProductoPrecios = producto.ProductoPrecios.Select(pp => new ProductoPrecioDto
             {
@@ -397,6 +415,7 @@ public class ProductoService : IProductoService
         {
             ProductoId = p.ProductoId,
             Nombre = p.Nombre,
+            Slug = p.Slug,
             ImagenUrl = p.ImagenUrl,
         }).ToList();
     }

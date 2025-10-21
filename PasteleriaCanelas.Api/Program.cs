@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: myAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:4200", "http://localhost:3000") // Añade aquí el origen de tu frontend (Angular, React, etc.)
+                          policy.AllowAnyOrigin() // solo rutas permitiras (Angular, React, etc.)
                                 .AllowAnyHeader()
                                 .AllowAnyMethod();
                       });
@@ -71,7 +71,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 // Habilitar CORS
 app.UseCors(myAllowSpecificOrigins);
