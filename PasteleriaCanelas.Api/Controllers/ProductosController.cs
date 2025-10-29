@@ -26,7 +26,7 @@ public class ProductosController : ControllerBase
     // Endpoint 1: mostrar todos los productos
     // GET /api/Productos
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductoResumenDto>>> GetAdminProductos()
+    public async Task<ActionResult<IEnumerable<ProductoDetallesDto>>> GetAdminProductos()
     {
         //se retornan los datos y se envía respuesta
         var productos = await _productoService.ObtenerTodosProductos();

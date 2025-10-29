@@ -75,20 +75,34 @@ public class ProductoService : IProductoService
 
 
     // Implementación de método 2 : mostrar productos (activos e inactivos)
-    public async Task<IEnumerable<ProductoResumenDto>?> ObtenerTodosProductos()
+    public async Task<IEnumerable<ProductoDetallesDto>?> ObtenerTodosProductos()
     {
         // se obtiene los productos de la base de datos con precio y catálogo
         var productos = await _context.Productos
+        .Include(p => p.Categoria) // se agrega categoría
         .Include(p => p.ProductoPrecios)
         .ToListAsync();
 
         // mapear cada entidad de producto a un DTO de respuesta
-        var todosProductos = productos.Select(p => new ProductoResumenDto
+        var todosProductos = productos.Select(p => new ProductoDetallesDto
         {
             ProductoId = p.ProductoId,
             Nombre = p.Nombre,
-            Slug = p.Slug,
+            Descripcion = p.Descripcion,
             ImagenUrl = p.ImagenUrl,
+            Activo = p.Activo,
+            Slug = p.Slug,
+            EsDeTemporada = p.EsDeTemporada,
+            Categoria = new CategoriaDto
+            {
+                CategoriaId = p.Categoria.CategoriaId,
+                Nombre = p.Categoria.Nombre,
+                Slug = p.Categoria.Slug,
+                Descripcion = p.Categoria.Descripcion,
+                Icono = p.Categoria.Icono,
+                ImagenUrl = p.Categoria.ImagenUrl,
+                Activo = p.Categoria.Activo
+            },
             ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
             {
                 ProductoPrecioId = pp.ProductoPrecioId,

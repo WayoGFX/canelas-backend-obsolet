@@ -10,7 +10,7 @@ public interface IProductoService
 
     // CRUD Productos 
     Task<ProductoDetallesDto?> ObtenerProductoPorId(int productoId);
-    Task<IEnumerable<ProductoResumenDto>?> ObtenerTodosProductos();
+    Task<IEnumerable<ProductoDetallesDto>?> ObtenerTodosProductos();
     Task<ProductoDetallesDto?> CrearProducto(ProductoCreacionDto productoDto);
     Task<bool> ActualizarProducto(ProductoActualizacionDto productoDto);
     Task<bool> EliminarProducto(int productoId);
