@@ -331,6 +331,58 @@ public class ProductoService : IProductoService
         return todosProductos;
     }
 
+    public async Task<CatalogoInicialDto> ObtenerCatalogoInicial()
+    {
+        // 1. Obtener todas las categorías activas
+        var categorias = await _context.Categorias
+            .Where(c => c.Activo)
+            .Select(c => new CategoriaDto
+            {
+                CategoriaId = c.CategoriaId,
+                Nombre = c.Nombre,
+                Slug = c.Slug,
+                Descripcion = c.Descripcion,
+                Icono = c.Icono,
+                ImagenUrl = c.ImagenUrl,
+                Activo = c.Activo
+            })
+            .ToListAsync();
+
+        // 2. Obtener todos los productos activos con sus precios y categoría
+        var productos = await _context.Productos
+            .Include(p => p.ProductoPrecios)
+            .Include(p => p.Categoria)
+            .Where(p => p.Activo && p.Categoria.Activo)
+            .Select(p => new ProductoResumenConCategoriaDto
+            {
+                ProductoId = p.ProductoId,
+                Nombre = p.Nombre,
+                Slug = p.Slug,
+                Descripcion = p.Descripcion,
+                ImagenUrl = p.ImagenUrl,
+                EsDestacado = false, // falso :]
+                EsDeTemporada = p.EsDeTemporada,
+                CategoriaSlug = p.Categoria.Slug,
+                ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
+                {
+                    ProductoPrecioId = pp.ProductoPrecioId,
+                    DescripcionPrecio = pp.DescripcionPrecio,
+                    Precio = pp.Precio
+                }).ToList()
+            })
+            .ToListAsync();
+
+        // 3. Filtrar productos de temporada
+        var temporada = productos.Where(p => p.EsDeTemporada).ToList();
+
+        // 4. Retornar todo junto
+        return new CatalogoInicialDto
+        {
+            Categorias = categorias,
+            Productos = productos,
+            Temporada = temporada
+        };
+    }
 
     // Implementación de método 2: Obtener todos los productos por Categoria
     public async Task<IEnumerable<ProductoResumenDto>?> ObtenerProductosCategoria(string categoriaSlug)

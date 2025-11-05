@@ -25,6 +25,16 @@ public class CatalogoController : ControllerBase
         _productoService = productoService;
     }
 
+
+    // Endpoint NUEVO: Catálogo inicial optimizado
+    // GET /api/Catalogo/inicial
+    [HttpGet("inicial")]
+    public async Task<ActionResult<CatalogoInicialDto>> GetCatalogoInicial()
+    {
+        var catalogo = await _productoService.ObtenerCatalogoInicial();
+        return Ok(catalogo);
+    }
+
     // Endpoint 1: para mostrar todos los productos | solo si están activos
     // GET /api/Catalogo
     [HttpGet]
