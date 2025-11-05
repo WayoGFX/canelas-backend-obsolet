@@ -331,6 +331,9 @@ public class ProductoService : IProductoService
         return todosProductos;
     }
 
+    // NUEVO: Implementación de método optimizado - Catálogo inicial completo
+    // Obtiene categorías, productos y productos de temporada en una sola consulta optimizada
+    // Usado por el frontend para cargar todo el catálogo en una sola petición HTTP
     public async Task<CatalogoInicialDto> ObtenerCatalogoInicial()
     {
         // 1. Obtener todas las categorías activas
@@ -348,34 +351,34 @@ public class ProductoService : IProductoService
             })
             .ToListAsync();
 
-        // 2. Obtener todos los productos activos con sus precios y categoría
+        // 2. Obtener todos los productos activos con sus precios
+        // Solo se incluye el slug de la categoría (no el objeto completo) para reducir peso del payload
         var productos = await _context.Productos
-            .Include(p => p.ProductoPrecios)
-            .Include(p => p.Categoria)
-            .Where(p => p.Activo && p.Categoria.Activo)
-            .Select(p => new ProductoResumenConCategoriaDto
-            {
-                ProductoId = p.ProductoId,
-                Nombre = p.Nombre,
-                Slug = p.Slug,
-                Descripcion = p.Descripcion,
-                ImagenUrl = p.ImagenUrl,
-                EsDestacado = false, // falso :]
-                EsDeTemporada = p.EsDeTemporada,
-                CategoriaSlug = p.Categoria.Slug,
-                ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
+        .Where(p => p.Activo && p.Categoria.Activo)
+        .Select(p => new ProductoResumenConCategoriaDto
+        {
+            ProductoId = p.ProductoId,
+            Nombre = p.Nombre,
+            Slug = p.Slug,
+            Descripcion = p.Descripcion,
+            ImagenUrl = p.ImagenUrl,
+            EsDeTemporada = p.EsDeTemporada,
+            CategoriaSlug = p.Categoria.Slug,
+            ProductoPrecios = p.ProductoPrecios
+                .Select(pp => new ProductoPrecioDto
                 {
                     ProductoPrecioId = pp.ProductoPrecioId,
                     DescripcionPrecio = pp.DescripcionPrecio,
                     Precio = pp.Precio
                 }).ToList()
-            })
-            .ToListAsync();
+        })
+        .AsNoTracking()
+        .ToListAsync();
 
-        // 3. Filtrar productos de temporada
+        // 3. Filtrar productos de temporada de la lista ya obtenida (evita consulta adicional)
         var temporada = productos.Where(p => p.EsDeTemporada).ToList();
 
-        // 4. Retornar todo junto
+        // 4. Retornar todo junto en un solo objeto
         return new CatalogoInicialDto
         {
             Categorias = categorias,

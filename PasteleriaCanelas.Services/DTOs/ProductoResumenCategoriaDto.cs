@@ -7,7 +7,6 @@ public class ProductoResumenConCategoriaDto
     public string? Slug { get; set; }
     public string? Descripcion { get; set; }
     public string? ImagenUrl { get; set; }
-    public bool EsDestacado { get; set; }
     public bool EsDeTemporada { get; set; }
     public string CategoriaSlug { get; set; } = string.Empty;
     public List<ProductoPrecioDto> ProductoPrecios { get; set; } = new();
