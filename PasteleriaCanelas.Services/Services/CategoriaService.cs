@@ -48,38 +48,37 @@ public async Task<CategoriaDto?> CrearCategoria(CategoriaCreacionDto categoriaDt
 
     public async Task<IEnumerable<CategoriaDto>> ObtenerCategorias()
     {
-        var categorias = await _context.Categorias.ToListAsync();
-
-        return categorias.Select(c => new CategoriaDto
-        {
-            CategoriaId = c.CategoriaId,
-            Nombre = c.Nombre,
-            Slug = c.Slug, // Mapeo de la nueva propiedad
-            Descripcion = c.Descripcion, // Mapeo de la nueva propiedad
-            ImagenUrl = c.ImagenUrl,
-            Icono = c.Icono,
-            Activo = c.Activo // Mapeo de la nueva propiedad
-        }).ToList();
+        return await _context.Categorias
+            .AsNoTracking()
+            .Select(c => new CategoriaDto
+            {
+                CategoriaId = c.CategoriaId,
+                Nombre = c.Nombre,
+                Slug = c.Slug,
+                Descripcion = c.Descripcion,
+                ImagenUrl = c.ImagenUrl,
+                Icono = c.Icono,
+                Activo = c.Activo
+            })
+            .ToListAsync();
     }
 
     public async Task<CategoriaDto?> ObtenerCategoriaPorId(int categoriaId)
     {
-        var categoria = await _context.Categorias.FindAsync(categoriaId);
-        if (categoria == null)
-        {
-            return null;
-        }
-
-        return new CategoriaDto
-        {
-            CategoriaId = categoria.CategoriaId,
-            Nombre = categoria.Nombre,
-            Slug = categoria.Slug, // Mapeo de la nueva propiedad
-            Descripcion = categoria.Descripcion, // Mapeo de la nueva propiedad
-            ImagenUrl = categoria.ImagenUrl,
-            Icono = categoria.Icono,
-            Activo = categoria.Activo // Mapeo de la nueva propiedad
-        };
+        return await _context.Categorias
+            .AsNoTracking()
+            .Where(c => c.CategoriaId == categoriaId)
+            .Select(c => new CategoriaDto
+            {
+                CategoriaId = c.CategoriaId,
+                Nombre = c.Nombre,
+                Slug = c.Slug,
+                Descripcion = c.Descripcion,
+                ImagenUrl = c.ImagenUrl,
+                Icono = c.Icono,
+                Activo = c.Activo
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<bool> ActualizarCategoria(CategoriaActualizacionDto categoriaDto)

@@ -4,7 +4,7 @@ using PasteleriaCanelas.Services.DTOs;
 using PasteleriaCanelas.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using PasteleriaCanelas.Services.Utilities; // para crear los slug
-
+using Microsoft.Extensions.Caching.Memory;
 
 namespace PasteleriaCanelas.Services.Services;
 
@@ -13,12 +13,14 @@ public class ProductoService : IProductoService
 {
     //se declara variable para el contexto de la base de datos
     private readonly PasteleriaDbContext _context;
+    private readonly IMemoryCache _cache;
 
     // Constructor | es el punto para la inyección de dependencias
     // se inyecta una instancia del contexto cuando se crea ProductoService
-    public ProductoService(PasteleriaDbContext context)
+    public ProductoService(PasteleriaDbContext context, IMemoryCache cache)
     {
         _context = context;
+        _cache = cache;
     }
 
 
@@ -27,91 +29,74 @@ public class ProductoService : IProductoService
     // Implementación de metodo 1 : mostrar por id
     public async Task<ProductoDetallesDto?> ObtenerProductoPorId(int productoId)
     {
-
-        // se usa include() para cargar datos de las relaciones que se tienen (categoria y precios)
-        // en una sola consulta, se envita muchas peticiones a la db
-        var producto = await _context.Productos
-        .Include(p => p.Categoria)
-        .Include(p => p.ProductoPrecios)
-        .FirstOrDefaultAsync(p => p.ProductoId == productoId);
-
-        // si el producto no lo encontró entonces se retorna un null
-        if (producto == null)
-        {
-            return null;
-        }
-
-        // se mapea la respuesta con sus relaciones a un dto de respuesta
-        var productoRespuesta = new ProductoDetallesDto
-        {
-            ProductoId = producto.ProductoId,
-            Nombre = producto.Nombre,
-            Descripcion = producto.Descripcion,
-            ImagenUrl = producto.ImagenUrl,
-            Activo = producto.Activo,
-            Slug = producto.Slug,
-            Categoria = new CategoriaDto
+        return await _context.Productos
+            .AsNoTracking()
+            .Include(p => p.Categoria)
+            .Include(p => p.ProductoPrecios)
+            .Where(p => p.ProductoId == productoId)
+            .Select(producto => new ProductoDetallesDto
             {
-                CategoriaId = producto.Categoria.CategoriaId,
-                Nombre = producto.Categoria.Nombre,
-                Slug = producto.Categoria.Slug,
-                Descripcion = producto.Categoria.Descripcion,
-                Icono = producto.Categoria.Icono,
-                ImagenUrl = producto.Categoria.ImagenUrl,
-                Activo = producto.Categoria.Activo
-            },
-            ProductoPrecios = producto.ProductoPrecios?.Select(pp => new ProductoPrecioDto
-            {
-                ProductoPrecioId = pp.ProductoPrecioId,
-                DescripcionPrecio = pp.DescripcionPrecio,
-                Precio = pp.Precio
-            }).ToList() ?? new List<ProductoPrecioDto>() // Si es nula, crea una nueva lista vacía.
-
-        };
-
-        return productoRespuesta;
-
+                ProductoId = producto.ProductoId,
+                Nombre = producto.Nombre,
+                Descripcion = producto.Descripcion,
+                ImagenUrl = producto.ImagenUrl,
+                Activo = producto.Activo,
+                Slug = producto.Slug,
+                Categoria = new CategoriaDto
+                {
+                    CategoriaId = producto.Categoria.CategoriaId,
+                    Nombre = producto.Categoria.Nombre,
+                    Slug = producto.Categoria.Slug,
+                    Descripcion = producto.Categoria.Descripcion,
+                    Icono = producto.Categoria.Icono,
+                    ImagenUrl = producto.Categoria.ImagenUrl,
+                    Activo = producto.Categoria.Activo
+                },
+                ProductoPrecios = producto.ProductoPrecios.Select(pp => new ProductoPrecioDto
+                {
+                    ProductoPrecioId = pp.ProductoPrecioId,
+                    DescripcionPrecio = pp.DescripcionPrecio,
+                    Precio = pp.Precio
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
     }
 
 
     // Implementación de método 2 : mostrar productos (activos e inactivos)
     public async Task<IEnumerable<ProductoDetallesDto>?> ObtenerTodosProductos()
     {
-        // se obtiene los productos de la base de datos con precio y catálogo
-        var productos = await _context.Productos
-        .Include(p => p.Categoria) // se agrega categoría
-        .Include(p => p.ProductoPrecios)
-        .ToListAsync();
-
-        // mapear cada entidad de producto a un DTO de respuesta
-        var todosProductos = productos.Select(p => new ProductoDetallesDto
-        {
-            ProductoId = p.ProductoId,
-            Nombre = p.Nombre,
-            Descripcion = p.Descripcion,
-            ImagenUrl = p.ImagenUrl,
-            Activo = p.Activo,
-            Slug = p.Slug,
-            EsDeTemporada = p.EsDeTemporada,
-            Categoria = new CategoriaDto
+        return await _context.Productos
+            .AsNoTracking()
+            .Include(p => p.Categoria)
+            .Include(p => p.ProductoPrecios)
+            .Select(p => new ProductoDetallesDto
             {
-                CategoriaId = p.Categoria.CategoriaId,
-                Nombre = p.Categoria.Nombre,
-                Slug = p.Categoria.Slug,
-                Descripcion = p.Categoria.Descripcion,
-                Icono = p.Categoria.Icono,
-                ImagenUrl = p.Categoria.ImagenUrl,
-                Activo = p.Categoria.Activo
-            },
-            ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
-            {
-                ProductoPrecioId = pp.ProductoPrecioId,
-                DescripcionPrecio = pp.DescripcionPrecio,
-                Precio = pp.Precio
-            }).ToList()
-        }).ToList();
-
-        return todosProductos;
+                ProductoId = p.ProductoId,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                ImagenUrl = p.ImagenUrl,
+                Activo = p.Activo,
+                Slug = p.Slug,
+                EsDeTemporada = p.EsDeTemporada,
+                Categoria = new CategoriaDto
+                {
+                    CategoriaId = p.Categoria.CategoriaId,
+                    Nombre = p.Categoria.Nombre,
+                    Slug = p.Categoria.Slug,
+                    Descripcion = p.Categoria.Descripcion,
+                    Icono = p.Categoria.Icono,
+                    ImagenUrl = p.Categoria.ImagenUrl,
+                    Activo = p.Categoria.Activo
+                },
+                ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
+                {
+                    ProductoPrecioId = pp.ProductoPrecioId,
+                    DescripcionPrecio = pp.DescripcionPrecio,
+                    Precio = pp.Precio
+                }).ToList()
+            })
+            .ToListAsync();
     }
 
     // Se implementa de método 3: crear un producto
@@ -307,28 +292,24 @@ public class ProductoService : IProductoService
     // Implementación de método 1: Obtener todos los productos
     public async Task<IEnumerable<ProductoResumenDto>?> ObtenerProductos()
     {
-        // se obtiene los productos de la base de datos con precio y catálogo
-        var productos = await _context.Productos
-        .Include(p => p.ProductoPrecios)
-        .Where(p => p.Activo && p.Categoria.Activo) // solo productos activos
-        .ToListAsync();
-
-        // mapear cada entidad de producto a un DTO de respuesta
-        var todosProductos = productos.Select(p => new ProductoResumenDto
-        {
-            ProductoId = p.ProductoId,
-            Nombre = p.Nombre,
-            Slug = p.Slug,
-            ImagenUrl = p.ImagenUrl,
-            ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
+        return await _context.Productos
+            .AsNoTracking()
+            .Include(p => p.ProductoPrecios)
+            .Where(p => p.Activo && p.Categoria.Activo)
+            .Select(p => new ProductoResumenDto
             {
-                ProductoPrecioId = pp.ProductoPrecioId,
-                DescripcionPrecio = pp.DescripcionPrecio,
-                Precio = pp.Precio
-            }).ToList()
-        }).ToList();
-
-        return todosProductos;
+                ProductoId = p.ProductoId,
+                Nombre = p.Nombre,
+                Slug = p.Slug,
+                ImagenUrl = p.ImagenUrl,
+                ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
+                {
+                    ProductoPrecioId = pp.ProductoPrecioId,
+                    DescripcionPrecio = pp.DescripcionPrecio,
+                    Precio = pp.Precio
+                }).ToList()
+            })
+            .ToListAsync();
     }
 
     // NUEVO: Implementación de método optimizado - Catálogo inicial completo
@@ -336,7 +317,13 @@ public class ProductoService : IProductoService
     // Usado por el frontend para cargar todo el catálogo en una sola petición HTTP
     public async Task<CatalogoInicialDto> ObtenerCatalogoInicial()
     {
-        // 1. Obtener todas las categorías activas
+        const string cacheKey = "CatalogoInicial";
+
+        if (_cache.TryGetValue(cacheKey, out CatalogoInicialDto? catalogo))
+        {
+            if(catalogo is not null) return catalogo;
+        }
+
         var categorias = await _context.Categorias
             .Where(c => c.Activo)
             .Select(c => new CategoriaDto
@@ -351,142 +338,127 @@ public class ProductoService : IProductoService
             })
             .ToListAsync();
 
-        // 2. Obtener todos los productos activos con sus precios
-        // Solo se incluye el slug de la categoría (no el objeto completo) para reducir peso del payload
         var productos = await _context.Productos
-        .Where(p => p.Activo && p.Categoria.Activo)
-        .Select(p => new ProductoResumenConCategoriaDto
-        {
-            ProductoId = p.ProductoId,
-            Nombre = p.Nombre,
-            Slug = p.Slug,
-            Descripcion = p.Descripcion,
-            ImagenUrl = p.ImagenUrl,
-            EsDeTemporada = p.EsDeTemporada,
-            CategoriaSlug = p.Categoria.Slug,
-            ProductoPrecios = p.ProductoPrecios
-                .Select(pp => new ProductoPrecioDto
-                {
-                    ProductoPrecioId = pp.ProductoPrecioId,
-                    DescripcionPrecio = pp.DescripcionPrecio,
-                    Precio = pp.Precio
-                }).ToList()
-        })
-        .AsNoTracking()
-        .ToListAsync();
+            .Where(p => p.Activo && p.Categoria.Activo)
+            .Select(p => new ProductoResumenConCategoriaDto
+            {
+                ProductoId = p.ProductoId,
+                Nombre = p.Nombre,
+                Slug = p.Slug,
+                Descripcion = p.Descripcion,
+                ImagenUrl = p.ImagenUrl,
+                EsDeTemporada = p.EsDeTemporada,
+                CategoriaSlug = p.Categoria.Slug,
+                ProductoPrecios = p.ProductoPrecios
+                    .Select(pp => new ProductoPrecioDto
+                    {
+                        ProductoPrecioId = pp.ProductoPrecioId,
+                        DescripcionPrecio = pp.DescripcionPrecio,
+                        Precio = pp.Precio
+                    }).ToList()
+            })
+            .AsNoTracking()
+            .ToListAsync();
 
-        // 3. Filtrar productos de temporada de la lista ya obtenida (evita consulta adicional)
         var temporada = productos.Where(p => p.EsDeTemporada).ToList();
 
-        // 4. Retornar todo junto en un solo objeto
-        return new CatalogoInicialDto
+        var catalogoCompleto = new CatalogoInicialDto
         {
             Categorias = categorias,
             Productos = productos,
             Temporada = temporada
         };
+
+        var cacheOptions = new MemoryCacheEntryOptions()
+            .SetSlidingExpiration(TimeSpan.FromMinutes(5));
+
+        _cache.Set(cacheKey, catalogoCompleto, cacheOptions);
+
+        return catalogoCompleto;
     }
 
     // Implementación de método 2: Obtener todos los productos por Categoria
     public async Task<IEnumerable<ProductoResumenDto>?> ObtenerProductosCategoria(string categoriaSlug)
     {
-        // verificamos que la categoria existe
-        var categoria = await _context.Categorias
-        .FirstOrDefaultAsync(c => c.Slug == categoriaSlug);
+        var categoriaExists = await _context.Categorias.AnyAsync(c => c.Slug == categoriaSlug);
 
-        if (categoria == null)
+        if (!categoriaExists)
         {
-            return null; // La categoría no existe, retorna null
+            return null; 
         }
-        // Obtener los productos de la base de datos que coincidan con la categoría
-        // se incluyen sus precios
-        var productos = await _context.Productos
-        .Include(p => p.ProductoPrecios)
-        .Where(p => p.CategoriaId == categoria.CategoriaId && p.Activo && categoria.Activo)
-        .ToListAsync();
 
-        // si no hay productos se retorna lista vacía
-        if (!productos.Any())
-        {
-            return new List<ProductoResumenDto>(); // La categoría no tiene productos activos
-        }
-        // Mapear la lista de entidades a una lista de ProductoResumenDto
-        var productosDto = productos.Select(p => new ProductoResumenDto
-        {
-            ProductoId = p.ProductoId,
-            Nombre = p.Nombre,
-            Slug = p.Slug,
-            ImagenUrl = p.ImagenUrl,
-            ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
+        return await _context.Productos
+            .AsNoTracking()
+            .Include(p => p.ProductoPrecios)
+            .Where(p => p.Categoria.Slug == categoriaSlug && p.Activo && p.Categoria.Activo)
+            .Select(p => new ProductoResumenDto
             {
-                ProductoPrecioId = pp.ProductoPrecioId,
-                DescripcionPrecio = pp.DescripcionPrecio,
-                Precio = pp.Precio
-            }).ToList()
-        }).ToList();
-
-        // retornar resultado
-        return productosDto;
-
+                ProductoId = p.ProductoId,
+                Nombre = p.Nombre,
+                Slug = p.Slug,
+                ImagenUrl = p.ImagenUrl,
+                ProductoPrecios = p.ProductoPrecios.Select(pp => new ProductoPrecioDto
+                {
+                    ProductoPrecioId = pp.ProductoPrecioId,
+                    DescripcionPrecio = pp.DescripcionPrecio,
+                    Precio = pp.Precio
+                }).ToList()
+            })
+            .ToListAsync();
     }
 
     // Implementación metodo 4: Obtener productos por slug
     public async Task<ProductoDetallesDto?> GetProductoPorSlugAsync(string slug)
     {
-        var producto = await _context.Productos
+        return await _context.Productos
+            .AsNoTracking()
             .Include(p => p.ProductoPrecios)
             .Include(p => p.Categoria)
-            .Where(p => p.Activo && p.Categoria.Activo) // solo productos activos
-            .FirstOrDefaultAsync(p => p.Slug == slug); // Busca el producto por el slug
-
-        if (producto == null)
-        {
-            return null;
-        }
-
-        return new ProductoDetallesDto
-        {
-            ProductoId = producto.ProductoId,
-            Nombre = producto.Nombre,
-            Descripcion = producto.Descripcion,
-            ImagenUrl = producto.ImagenUrl,
-            Activo = producto.Activo,
-            EsDeTemporada = producto.EsDeTemporada,
-            Slug = producto.Slug,
-            Categoria = new CategoriaDto
+            .Where(p => p.Activo && p.Categoria.Activo && p.Slug == slug)
+            .Select(producto => new ProductoDetallesDto
             {
-                CategoriaId = producto.Categoria.CategoriaId,
-                Nombre = producto.Categoria.Nombre,
-                Slug = producto.Categoria.Slug,
-                Descripcion = producto.Categoria.Descripcion,
-                Icono = producto.Categoria.Icono,
-                ImagenUrl = producto.Categoria.ImagenUrl,
-                Activo = producto.Categoria.Activo
-            },
-            ProductoPrecios = producto.ProductoPrecios.Select(pp => new ProductoPrecioDto
-            {
-                ProductoPrecioId = pp.ProductoPrecioId,
-                DescripcionPrecio = pp.DescripcionPrecio,
-                Precio = pp.Precio
-            }).ToList()
-        };
+                ProductoId = producto.ProductoId,
+                Nombre = producto.Nombre,
+                Descripcion = producto.Descripcion,
+                ImagenUrl = producto.ImagenUrl,
+                Activo = producto.Activo,
+                EsDeTemporada = producto.EsDeTemporada,
+                Slug = producto.Slug,
+                Categoria = new CategoriaDto
+                {
+                    CategoriaId = producto.Categoria.CategoriaId,
+                    Nombre = producto.Categoria.Nombre,
+                    Slug = producto.Categoria.Slug,
+                    Descripcion = producto.Categoria.Descripcion,
+                    Icono = producto.Categoria.Icono,
+                    ImagenUrl = producto.Categoria.ImagenUrl,
+                    Activo = producto.Categoria.Activo
+                },
+                ProductoPrecios = producto.ProductoPrecios.Select(pp => new ProductoPrecioDto
+                {
+                    ProductoPrecioId = pp.ProductoPrecioId,
+                    DescripcionPrecio = pp.DescripcionPrecio,
+                    Precio = pp.Precio
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
     }
 
     // Implementación de metodo 5: Obtener productos de temporada
     public async Task<IEnumerable<ProductoResumenDto>> GetProductosDeTemporadaAsync()
     {
-        var productos = await _context.Productos
+        return await _context.Productos
+            .AsNoTracking()
             .Include(p => p.Categoria)
-            .Where(p => p.EsDeTemporada  && p.Activo && p.Categoria.Activo) // Filtra solo los productos de temporada
+            .Where(p => p.EsDeTemporada && p.Activo && p.Categoria.Activo)
+            .Select(p => new ProductoResumenDto
+            {
+                ProductoId = p.ProductoId,
+                Nombre = p.Nombre,
+                Slug = p.Slug,
+                ImagenUrl = p.ImagenUrl,
+            })
             .ToListAsync();
-
-        return productos.Select(p => new ProductoResumenDto
-        {
-            ProductoId = p.ProductoId,
-            Nombre = p.Nombre,
-            Slug = p.Slug,
-            ImagenUrl = p.ImagenUrl,
-        }).ToList();
     }
 
 

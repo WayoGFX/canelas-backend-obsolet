@@ -5,7 +5,7 @@ using PasteleriaCanelas.Services;
 using Microsoft.AspNetCore.Mvc; // Necesario para ApiBehaviorOptions | osea manejo de errores
 using PasteleriaCanelas.Services.Interfaces;
 using PasteleriaCanelas.Services.Services;
-
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +26,14 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Habilitar compresión de respuestas (Brotli y Gzip)
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
 
 // inyección de dependencias para el DbContext
 builder.Services.AddDbContext<PasteleriaDbContext>(options =>
@@ -37,6 +45,9 @@ builder.Services.AddDbContext<PasteleriaDbContext>(options =>
 builder.Services.AddScoped<IProductoService, ProductoService>();
 // service de categorias
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+
+// Habilitar caché en memoria
+builder.Services.AddMemoryCache();
 
 
 // añadir los servicios al controlador.
@@ -71,7 +82,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
+
+// Habilitar compresión de respuestas
+app.UseResponseCompression();
 
 // Habilitar CORS
 app.UseCors(myAllowSpecificOrigins);
