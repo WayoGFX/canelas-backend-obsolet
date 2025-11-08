@@ -34,5 +34,5 @@ TestResults/
 *.vssscc
 
 # Archivos de configuración local y scripts de base de datos
-appsettings.Development.json
-esquema.sql
+.appsettings.Development.json
+.esquema.sql
