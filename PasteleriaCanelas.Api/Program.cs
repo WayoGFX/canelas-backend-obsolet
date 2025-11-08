@@ -36,8 +36,9 @@ builder.Services.AddResponseCompression(options =>
 
 
 // inyección de dependencias para el DbContext
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<PasteleriaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
 // servicio de producto al contenedor de inyección de dependencias.
 // Esto enlaza la interfaz (IProductoService) con su implementación (ProductoService).
